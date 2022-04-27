@@ -77,7 +77,6 @@ if __name__ == "__main__":
         
         MyTF = TFLibrary(tf_output_dir, diff_bound, time_bound,
                             time_thresold)
-        print(api_name)
         if need_skip_tf(api_name): pass
         else:
             for _ in range(each_api_run_times):

@@ -33,7 +33,7 @@ if __name__ == "__main__":
         TorchDatabase.database_config(host, port, mongo_cfg["torch_database"])
 
         for api_name in TorchDatabase.get_api_list():
-            print(api_name)
+            # print(api_name)
             if need_skip_torch(api_name):
                 continue
             try:
@@ -46,19 +46,31 @@ if __name__ == "__main__":
                 if res.returncode != 0:
                     dump_data(f"{api_name}\n", join(torch_output_dir, "runcrash.txt"), "a")
     if "tf" in libs:
+        # Read from the API LIST text file
+        with open("api_list.txt", "r", encoding="utf-8") as re:
+            list_api = [line.rstrip() for line in re]
+        print(list_api)
+        # exit()
+
         # database configuration
         from classes.database import TFDatabase
         TFDatabase.database_config(host, port, mongo_cfg["tf_database"])
 
-        for api_name in TFDatabase.get_api_list():
-            print(api_name)
+        for api_name in list_api:
+        # for api_name in TFDatabase.get_api_list():
+            # if api_name not in list_api:
+            #     continue
             try:
-                res = subprocess.run(["python3", "FreeFuzz_api.py", config_name, "tf", api_name], shell=False, timeout=100)
+                res = subprocess.run(["python3", "FreeFuzz_api.py", config_name, "tf", api_name], shell=False, timeout=100, check=True, capture_output=True)
             except subprocess.TimeoutExpired:
                 dump_data(f"{api_name}\n", join(tf_output_dir, "timeout.txt"), "a")
-            except Exception as e:
+            except subprocess.CalledProcessError as e:
                 dump_data(f"{api_name}\n  {e}\n", join(tf_output_dir, "runerror.txt"), "a")
+                print(e)
+                print(e.stderr)
+                print(e.stdout)
             else:
+
                 if res.returncode != 0:
                     dump_data(f"{api_name}\n", join(tf_output_dir, "runcrash.txt"), "a")
     
